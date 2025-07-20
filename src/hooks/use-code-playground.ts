@@ -22,22 +22,9 @@ export function useCodePlayground() {
       setCode(savedCode)
     } else {
       // Default code if nothing is saved
-setCode(`// Write your code below ->
-// You can define functions and variables,
-// then call them at the end to see the output.
-// The final value will be shown in the output box,
-// and console.log will show logs.
-
-// Example:
-console.log("Hello, CodeSpark!"); // This shows up as a log
-
-function add(a, b) {
-  return a + b;
-}
-
-// This result will be shown as the final output:
-add(5, 7);
-`);
+      setCode(
+        `console.log("Hello, CodeSpark!");\n\nfunction add(a, b) {\n  return a + b;\n}\n\nadd(5, 7); // This will be the final output`,
+      )
     }
   }, [])
 
