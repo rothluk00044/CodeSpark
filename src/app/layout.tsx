@@ -1,11 +1,11 @@
 import type React from "react"
 import type { Metadata } from "next"
 import "./globals.css"
-import { Toaster } from "sonner" // New import for Sonner
+import { Toaster } from "sonner"
 
 export const metadata: Metadata = {
-  title: "v0 App",
-  description: "Created with v0",
+  title: "CodeSpark - Interactive JS Playground",
+  description: "A web-based JavaScript code editor with live execution and local saving.",
   generator: "v0.dev",
 }
 
@@ -18,7 +18,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         {children}
-        <Toaster richColors /> {/* Added richColors prop for better styling */}
+        <Toaster richColors position="bottom-right" />
       </body>
     </html>
   )

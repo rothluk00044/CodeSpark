@@ -10,7 +10,7 @@ export function OutputConsole({ output, error, className }: OutputConsoleProps) 
   return (
     <div
       className={cn(
-        "flex-1 w-full h-full p-4 font-mono text-sm bg-gray-800 text-gray-200 overflow-auto rounded-none",
+        "flex-1 w-full h-full p-4 font-mono text-sm bg-gray-900 text-gray-200 overflow-auto rounded-lg",
         className,
       )}
       aria-live="polite"

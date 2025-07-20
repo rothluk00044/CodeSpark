@@ -23,7 +23,7 @@ export function useCodePlayground() {
     } else {
       // Default code if nothing is saved
       setCode(
-        `console.log("Hello, v0!");\n\nfunction greet(name) {\n  return "Hello, " + name + "!";\n}\n\nconsole.log(greet("World"));`,
+        `console.log("Hello, CodeSpark!");\n\nfunction add(a, b) {\n  return a + b;\n}\n\nadd(5, 7); // This will be the final output`,
       )
     }
   }, [])
@@ -44,7 +44,7 @@ export function useCodePlayground() {
     }
   }, [code])
 
-  const runCode = useCallback(() => {
+  const runCode = useCallback(async () => {
     setIsRunning(true)
     setOutput("")
     setError("")
@@ -70,13 +70,44 @@ export function useCodePlayground() {
     }
 
     try {
+      // Wrap the user's code in an async IIFE to capture return value and handle promises
+      // We explicitly return the result of the last expression
+      const wrappedCode = `
+        (async function() {
+          let _result;
+          try {
+            // Use a block scope to prevent variable leakage and ensure last expression is captured
+            _result = (function() {
+              ${code}
+            })(); // Execute the user's code
+            
+            if (_result instanceof Promise) {
+              _result = await _result; // Await if it's a promise
+            }
+            return _result; // Explicitly return the result
+          } catch (e) {
+            throw e; // Re-throw to be caught by the outer try-catch
+          }
+        })();
+      `
+
       // Execute the code in a new Function context for better isolation
-      // 'use strict' is added to prevent accidental global variable creation
-      new Function("console", `'use strict';\n${code}`)(console)
-      setOutput(logs.join("\n"))
+      // Pass console to the function to allow user code to use it
+      const executor = new Function("console", wrappedCode)
+      const result = await executor(console) // Await the execution result from the executor
+
+      let finalOutput = logs.join("\n")
+      if (result !== undefined) {
+        // Append the return value if it's not undefined
+        if (finalOutput.length > 0) {
+          finalOutput += "\n"
+        }
+        finalOutput += `=> ${typeof result === "object" && result !== null ? JSON.stringify(result, null, 2) : String(result)}`
+      }
+      setOutput(finalOutput)
     } catch (e: unknown) {
       if (e instanceof Error) {
-        setError(`Error: ${e.message}`)
+        setError(`Error: ${e.name}: ${e.message}\n${e.stack || ""}`)
       } else {
         setError(`An unknown error occurred: ${String(e)}`)
       }
