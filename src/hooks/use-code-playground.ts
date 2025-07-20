@@ -4,9 +4,6 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import { saveCodeSnippetServerAction, exportSnippetsServerAction } from "@/lib/actions"
 import { v4 as uuidv4 } from "uuid" // For generating unique IDs
 
-// You'll need to install uuid: pnpm add uuid @types/uuid
-// Or npm: npm install uuid @types/uuid
-
 const LOCAL_STORAGE_KEY_CODE = "code-playground-current-snippet"
 const LOCAL_STORAGE_KEY_SNIPPETS = "code-playground-saved-snippets"
 const DEBOUNCE_DELAY = 500 // milliseconds

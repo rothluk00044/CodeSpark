@@ -136,7 +136,9 @@ export default function CodePlaygroundPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-950 to-gray-800 text-gray-50">
+    <div className="flex flex-col min-h-screen bg-black text-gray-50">
+      {" "}
+      {/* Changed outer background to black */}
       <header className="flex items-center justify-between px-4 py-3 border-b border-gray-700/50 shadow-lg shrink-0 md:px-6">
         <h1 className="text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-teal-600">
           CodeSpark
@@ -179,7 +181,7 @@ export default function CodePlaygroundPage() {
               <div className="flex flex-col gap-2 mt-4">
                 <Button
                   onClick={handleSaveAs}
-                  className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white shadow-md"
+                  className="w-full bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white shadow-md" // Changed to green gradient
                 >
                   <FilePlusIcon className="w-4 h-4 mr-2" /> Save As New
                 </Button>
@@ -235,7 +237,9 @@ export default function CodePlaygroundPage() {
         </div>
       </header>
       <main className="flex flex-1 overflow-hidden p-4 md:p-6">
-        <div className="flex-1 flex flex-col md:flex-row overflow-hidden rounded-xl shadow-2xl bg-gray-900 border border-gray-700/50">
+        <div className="flex-1 flex flex-col md:flex-row overflow-hidden rounded-xl shadow-2xl bg-gray-950 border border-gray-700/50">
+          {" "}
+          {/* Changed inner background to gray-950 */}
           {/* Desktop View: Split Panels */}
           <div className="hidden md:flex flex-1 flex-col overflow-hidden">
             <Card className="flex-1 flex flex-col rounded-none border-none shadow-none bg-transparent">
@@ -263,7 +267,6 @@ export default function CodePlaygroundPage() {
               </CardContent>
             </Card>
           </div>
-
           {/* Mobile View: Tabs */}
           <div className="flex md:hidden flex-1 flex-col overflow-hidden">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 overflow-hidden">
@@ -299,12 +302,13 @@ export default function CodePlaygroundPage() {
           </div>
         </div>
       </main>
-
       {/* Save As Dialog */}
       <AlertDialog open={isSaveAsDialogOpen} onOpenChange={setIsSaveAsDialogOpen}>
         <AlertDialogContent className="bg-gray-900 border border-gray-700 text-gray-50">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
+            <AlertDialogTitle className="text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-teal-600">
+              {" "}
+              {/* Changed to green gradient */}
               Save Snippet As
             </AlertDialogTitle>
             <AlertDialogDescription className="text-gray-300">
@@ -315,7 +319,7 @@ export default function CodePlaygroundPage() {
             placeholder="My Awesome Snippet"
             value={newSnippetName}
             onChange={(e) => setNewSnippetName(e.target.value)}
-            className="bg-gray-800 border-gray-700 text-gray-50 focus-visible:ring-purple-500"
+            className="bg-gray-800 border-gray-700 text-gray-50 focus-visible:ring-green-500" // Adjusted focus ring
           />
           <AlertDialogFooter>
             <AlertDialogCancel className="border-gray-600 text-gray-200 hover:bg-gray-700 hover:text-gray-50">
@@ -323,14 +327,13 @@ export default function CodePlaygroundPage() {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmSaveAs}
-              className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white"
+              className="bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white" // Changed to green gradient
             >
               Save
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent className="bg-gray-900 border border-gray-700 text-gray-50">
