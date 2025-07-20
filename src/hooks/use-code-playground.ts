@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { saveCodeSnippet } from "@/lib/actions" // Import the server action for saving code snippets
+import { saveCodeSnippet } from "@/lib/actions"
 
 const LOCAL_STORAGE_KEY = "code-playground-snippet"
 const DEBOUNCE_DELAY = 500 // milliseconds
@@ -52,7 +52,7 @@ export function useCodePlayground() {
     // Capture console.log output
     const originalConsoleLog = console.log
     const logs: string[] = []
-    console.log = (...args: any[]) => {
+    console.log = (...args: unknown[]) => {
       logs.push(
         args
           .map((arg) => {
@@ -74,8 +74,12 @@ export function useCodePlayground() {
       // 'use strict' is added to prevent accidental global variable creation
       new Function("console", `'use strict';\n${code}`)(console)
       setOutput(logs.join("\n"))
-    } catch (e: any) {
-      setError(`Error: ${e.message || e}`)
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        setError(`Error: ${e.message}`)
+      } else {
+        setError(`An unknown error occurred: ${String(e)}`)
+      }
     } finally {
       // Restore original console.log
       console.log = originalConsoleLog
@@ -89,8 +93,12 @@ export function useCodePlayground() {
       // Simulate a server-side save operation using a Server Action
       const result = await saveCodeSnippet(code)
       return result
-    } catch (e: any) {
-      return { success: false, message: `Failed to save: ${e.message || e}` }
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        return { success: false, message: `Failed to save: ${e.message}` }
+      } else {
+        return { success: false, message: `Failed to save: An unknown error occurred.` }
+      }
     } finally {
       setIsSaving(false)
     }

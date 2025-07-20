@@ -9,7 +9,7 @@ import { CodeEditor } from "@/components/code-editor"
 import { OutputConsole } from "@/components/output-console"
 import { useCodePlayground } from "@/hooks/use-code-playground"
 import { PlayIcon, SaveIcon, Loader2Icon } from "lucide-react"
-import { toast } from "@/hooks/use-toast"
+import { toast } from "sonner" // New import for Sonner
 
 export default function CodePlaygroundPage() {
   const { code, output, error, isRunning, isSaving, setCode, runCode, saveCode } = useCodePlayground()
@@ -23,15 +23,12 @@ export default function CodePlaygroundPage() {
   const handleSave = async () => {
     const result = await saveCode()
     if (result.success) {
-      toast({
-        title: "Code Saved!",
+      toast.success("Code Saved!", {
         description: result.message,
       })
     } else {
-      toast({
-        title: "Save Failed",
+      toast.error("Save Failed", {
         description: result.message,
-        variant: "destructive",
       })
     }
   }
