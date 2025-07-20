@@ -36,7 +36,7 @@ export default function CodePlaygroundPage() {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-950 to-gray-800 text-gray-50">
       <header className="flex items-center justify-between px-4 py-3 border-b border-gray-700/50 shadow-lg shrink-0 md:px-6">
-        <h1 className="text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
+        <h1 className="text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-teal-600">
           CodeSpark
         </h1>
         <div className="flex items-center gap-2">
@@ -68,7 +68,8 @@ export default function CodePlaygroundPage() {
             <Card className="flex-1 flex flex-col rounded-none border-none shadow-none bg-transparent">
               <CardHeader className="pb-2 border-b border-gray-700/50">
                 <CardTitle className="text-lg font-semibold text-gray-200 flex items-center gap-2">
-                  <CodeIcon className="w-5 h-5 text-purple-400" /> Code Editor
+                  <CodeIcon className="w-5 h-5 text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-teal-600" />{" "}
+                  Code Editor
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex-1 p-0 overflow-hidden">

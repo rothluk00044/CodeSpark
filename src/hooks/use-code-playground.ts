@@ -49,9 +49,13 @@ export function useCodePlayground() {
     setOutput("")
     setError("")
 
-    // Capture console.log output
+    // Store original console methods
     const originalConsoleLog = console.log
+    const originalConsoleError = console.error
+
     const logs: string[] = []
+
+    // Override console.log and console.error to capture output
     console.log = (...args: unknown[]) => {
       logs.push(
         args
@@ -68,41 +72,38 @@ export function useCodePlayground() {
           .join(" "),
       )
     }
+    console.error = (...args: unknown[]) => {
+      logs.push("ERROR: " + args.map(String).join(" "))
+    }
+
+    let executionResult: unknown
 
     try {
-      // Wrap the user's code in an async IIFE to capture return value and handle promises
-      // We explicitly return the result of the last expression
-      const wrappedCode = `
-        (async function() {
-          let _result;
-          try {
-            // Use a block scope to prevent variable leakage and ensure last expression is captured
-            _result = (function() {
-              ${code}
-            })(); // Execute the user's code
-            
-            if (_result instanceof Promise) {
-              _result = await _result; // Await if it's a promise
-            }
-            return _result; // Explicitly return the result
-          } catch (e) {
-            throw e; // Re-throw to be caught by the outer try-catch
-          }
+      // Wrap the user's code in an async IIFE to handle promises and capture return value.
+      // The `return` statement at the end of the IIFE ensures the last expression's value
+      // or the resolved promise is returned by the `new Function` call.
+      const codeToExecute = `
+        'use strict';
+        return (async function() {
+          // Execute the user's code. The value of the last expression will be returned.
+          ${code}
         })();
       `
 
-      // Execute the code in a new Function context for better isolation
-      // Pass console to the function to allow user code to use it
-      const executor = new Function("console", wrappedCode)
-      const result = await executor(console) // Await the execution result from the executor
+      // Create a new Function. It executes in its own scope, but uses the global `console`
+      // which we have temporarily overridden.
+      const executor = new Function(codeToExecute)
+
+      // Execute the function. It returns a Promise because of the async IIFE.
+      executionResult = await executor()
 
       let finalOutput = logs.join("\n")
-      if (result !== undefined) {
-        // Append the return value if it's not undefined
+      if (executionResult !== undefined) {
         if (finalOutput.length > 0) {
           finalOutput += "\n"
         }
-        finalOutput += `=> ${typeof result === "object" && result !== null ? JSON.stringify(result, null, 2) : String(result)}`
+        // Format the result nicely
+        finalOutput += `=> ${typeof executionResult === "object" && executionResult !== null ? JSON.stringify(executionResult, null, 2) : String(executionResult)}`
       }
       setOutput(finalOutput)
     } catch (e: unknown) {
@@ -112,8 +113,9 @@ export function useCodePlayground() {
         setError(`An unknown error occurred: ${String(e)}`)
       }
     } finally {
-      // Restore original console.log
+      // Restore original console methods
       console.log = originalConsoleLog
+      console.error = originalConsoleError
       setIsRunning(false)
     }
   }, [code])
