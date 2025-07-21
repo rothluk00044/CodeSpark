@@ -45,6 +45,8 @@ export function CodeEditor({ value, onChange, className }: CodeEditorProps) {
         className="flex-shrink-0 w-10 bg-gray-800 text-gray-400 text-right pr-2 pt-4 font-mono text-sm overflow-hidden select-none border-r border-gray-700/50"
         aria-hidden="true"
       >
+        {" "}
+        {/* Changed background to gray-800 */}
         {Array.from({ length: lineCount }, (_, i) => (
           <div key={i} className="h-[1.25rem] leading-5">
             {i + 1}
@@ -56,7 +58,7 @@ export function CodeEditor({ value, onChange, className }: CodeEditorProps) {
         value={value}
         onChange={handleChange}
         onScroll={handleScroll}
-        placeholder={`// Write your JavaScript code here\nconsole.log("Hello, CodeSpark!");\n\n// Try returning a value:\nlet a = 10;\nlet b = 20;\na * b; // This will be the output`}
+        placeholder={`// Write your JavaScript functions here and call them in console.log\nconsole.log("Hello, CodeSpark!");;`}
         className="flex-1 w-full h-full p-4 font-mono text-sm bg-gray-900 text-gray-50 border-none resize-none focus-visible:ring-0 focus-visible:ring-offset-0 rounded-none leading-5"
         spellCheck="false"
         aria-label="Code Editor"
