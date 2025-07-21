@@ -1,10 +1,20 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { saveCodeSnippet } from "@/lib/actions"
+import { saveCodeSnippetServerAction, exportSnippetsServerAction } from "@/lib/actions"
+import { v4 as uuidv4 } from "uuid" // For generating unique IDs
 
-const LOCAL_STORAGE_KEY = "code-playground-snippet"
+const LOCAL_STORAGE_KEY_CODE = "code-playground-current-snippet"
+const LOCAL_STORAGE_KEY_SNIPPETS = "code-playground-saved-snippets"
 const DEBOUNCE_DELAY = 500 // milliseconds
+
+interface CodeSnippet {
+  id: string
+  name: string
+  code: string
+  createdAt: number
+  lastModified: number
+}
 
 export function useCodePlayground() {
   const [code, setCode] = useState<string>("")
@@ -12,29 +22,52 @@ export function useCodePlayground() {
   const [error, setError] = useState<string>("")
   const [isRunning, setIsRunning] = useState<boolean>(false)
   const [isSaving, setIsSaving] = useState<boolean>(false)
+  const [snippets, setSnippets] = useState<CodeSnippet[]>([])
+  const [currentSnippetId, setCurrentSnippetId] = useState<string | null>(null)
 
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Load code from local storage on initial mount
+  // Load snippets and current code from local storage on initial mount
   useEffect(() => {
-    const savedCode = localStorage.getItem(LOCAL_STORAGE_KEY)
-    if (savedCode) {
-      setCode(savedCode)
+    const savedSnippets = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_SNIPPETS) || "[]") as CodeSnippet[]
+    setSnippets(savedSnippets)
+
+    const savedCurrentCode = localStorage.getItem(LOCAL_STORAGE_KEY_CODE)
+    if (savedCurrentCode) {
+      setCode(savedCurrentCode)
+      // Try to find if this code belongs to an existing snippet
+      const matchingSnippet = savedSnippets.find((s) => s.code === savedCurrentCode)
+      if (matchingSnippet) {
+        setCurrentSnippetId(matchingSnippet.id)
+      } else {
+        setCurrentSnippetId(null) // It's unsaved or a new session
+      }
+    } else if (savedSnippets.length > 0) {
+      // If no current code, load the most recently modified snippet
+      const latestSnippet = savedSnippets.sort((a, b) => b.lastModified - a.lastModified)[0]
+      setCode(latestSnippet.code)
+      setCurrentSnippetId(latestSnippet.id)
     } else {
       // Default code if nothing is saved
-      setCode(
-        `console.log("Hello, CodeSpark!");\n\nfunction add(a, b) {\n  return a + b;\n}\n\nadd(5, 7); // This will be the final output`,
-      )
+      const defaultCode = `console.log("Hello, CodeSpark!");\n\nfunction add(a, b) {\n  return a + b;\n}\n\nadd(5, 7); // This will be the final output`
+      setCode(defaultCode)
+      setCurrentSnippetId(null)
     }
   }, [])
 
-  // Save code to local storage with debounce
+  // Save current code to local storage with debounce
   useEffect(() => {
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current)
     }
     debounceTimeoutRef.current = setTimeout(() => {
-      localStorage.setItem(LOCAL_STORAGE_KEY, code)
+      localStorage.setItem(LOCAL_STORAGE_KEY_CODE, code)
+      // If the current code matches a loaded snippet, update its lastModified time
+      setSnippets((prevSnippets) =>
+        prevSnippets.map((s) =>
+          s.id === currentSnippetId && s.code === code ? { ...s, lastModified: Date.now() } : s,
+        ),
+      )
     }, DEBOUNCE_DELAY)
 
     return () => {
@@ -42,7 +75,12 @@ export function useCodePlayground() {
         clearTimeout(debounceTimeoutRef.current)
       }
     }
-  }, [code])
+  }, [code, currentSnippetId])
+
+  // Persist snippets array to local storage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(LOCAL_STORAGE_KEY_SNIPPETS, JSON.stringify(snippets))
+  }, [snippets])
 
   const runCode = useCallback(async () => {
     setIsRunning(true)
@@ -123,9 +161,17 @@ export function useCodePlayground() {
   const saveCode = useCallback(async () => {
     setIsSaving(true)
     try {
-      // Simulate a server-side save operation using a Server Action
-      const result = await saveCodeSnippet(code)
-      return result
+      // If a snippet is currently loaded, update it
+      if (currentSnippetId) {
+        setSnippets((prevSnippets) =>
+          prevSnippets.map((s) => (s.id === currentSnippetId ? { ...s, code: code, lastModified: Date.now() } : s)),
+        )
+        const result = await saveCodeSnippetServerAction(code, currentSnippetId) // Simulate server save
+        return result
+      } else {
+        // If no snippet is loaded, prompt to save as new
+        return { success: false, message: "No snippet loaded. Use 'Save As New' to save this code." }
+      }
     } catch (e: unknown) {
       if (e instanceof Error) {
         return { success: false, message: `Failed to save: ${e.message}` }
@@ -135,7 +181,90 @@ export function useCodePlayground() {
     } finally {
       setIsSaving(false)
     }
-  }, [code])
+  }, [code, currentSnippetId, snippets])
+
+  const saveNewSnippet = useCallback(
+    async (name: string) => {
+      setIsSaving(true)
+      try {
+        const newSnippet: CodeSnippet = {
+          id: uuidv4(),
+          name,
+          code,
+          createdAt: Date.now(),
+          lastModified: Date.now(),
+        }
+        setSnippets((prevSnippets) => [...prevSnippets, newSnippet])
+        setCurrentSnippetId(newSnippet.id) // Set the newly saved snippet as current
+        const result = await saveCodeSnippetServerAction(code, newSnippet.id) // Simulate server save
+        return result
+      } catch (e: unknown) {
+        if (e instanceof Error) {
+          return { success: false, message: `Failed to save new snippet: ${e.message}` }
+        } else {
+          return { success: false, message: `Failed to save new snippet: An unknown error occurred.` }
+        }
+      } finally {
+        setIsSaving(false)
+      }
+    },
+    [code],
+  )
+
+  const loadSnippet = useCallback(
+    (id: string) => {
+      const snippetToLoad = snippets.find((s) => s.id === id)
+      if (snippetToLoad) {
+        setCode(snippetToLoad.code)
+        setCurrentSnippetId(snippetToLoad.id)
+        setOutput("")
+        setError("")
+      }
+    },
+    [snippets],
+  )
+
+  const deleteSnippet = useCallback(
+    async (id: string) => {
+      try {
+        setSnippets((prevSnippets) => prevSnippets.filter((s) => s.id !== id))
+        if (currentSnippetId === id) {
+          // If the deleted snippet was the current one, clear editor or load another
+          setCode(
+            `// Snippet "${snippets.find((s) => s.id === id)?.name || "deleted"}" was removed.\n// Start a new one or load another from the sidebar.`,
+          )
+          setCurrentSnippetId(null)
+          setOutput("")
+          setError("")
+        }
+        // Simulate server-side delete confirmation
+        await new Promise((resolve) => setTimeout(resolve, 500))
+        return { success: true, message: "Snippet deleted successfully (simulated)." }
+      } catch (e: unknown) {
+        if (e instanceof Error) {
+          return { success: false, message: `Failed to delete snippet: ${e.message}` }
+        } else {
+          return { success: false, message: `Failed to delete snippet: An unknown error occurred.` }
+        }
+      }
+    },
+    [snippets, currentSnippetId],
+  )
+
+  const exportAllSnippets = useCallback(async () => {
+    try {
+      const result = await exportSnippetsServerAction(snippets)
+      // In a real app, this would trigger a file download or similar.
+      // For this simulation, the server action just logs it.
+      return result
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        return { success: false, message: `Failed to export snippets: ${e.message}` }
+      } else {
+        return { success: false, message: `Failed to export snippets: An unknown error occurred.` }
+      }
+    }
+  }, [snippets])
 
   return {
     code,
@@ -146,5 +275,11 @@ export function useCodePlayground() {
     setCode,
     runCode,
     saveCode,
+    snippets,
+    currentSnippetId,
+    saveNewSnippet,
+    loadSnippet,
+    deleteSnippet,
+    exportAllSnippets,
   }
 }

@@ -45,6 +45,8 @@ export function CodeEditor({ value, onChange, className }: CodeEditorProps) {
         className="flex-shrink-0 w-10 bg-gray-800 text-gray-400 text-right pr-2 pt-4 font-mono text-sm overflow-hidden select-none border-r border-gray-700/50"
         aria-hidden="true"
       >
+        {" "}
+        {/* Changed background to gray-800 */}
         {Array.from({ length: lineCount }, (_, i) => (
           <div key={i} className="h-[1.25rem] leading-5">
             {i + 1}

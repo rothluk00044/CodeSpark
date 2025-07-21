@@ -15,6 +15,8 @@ export function OutputConsole({ output, error, className }: OutputConsoleProps) 
       )}
       aria-live="polite"
     >
+      {" "}
+      {/* Changed background to gray-900 */}
       {error ? (
         <pre className="text-red-400 whitespace-pre-wrap">{error}</pre>
       ) : (
