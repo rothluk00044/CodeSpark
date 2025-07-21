@@ -58,7 +58,7 @@ export function CodeEditor({ value, onChange, className }: CodeEditorProps) {
         value={value}
         onChange={handleChange}
         onScroll={handleScroll}
-        placeholder={`// Write your JavaScript functions here and call them in console.log\nconsole.log("Hello, CodeSpark!");;`}
+        placeholder={`// Write your JavaScript code here\nconsole.log("Hello, CodeSpark!");\n\n// Try returning a value:\nlet a = 10;\nlet b = 20;\na * b; // This will be the output`}
         className="flex-1 w-full h-full p-4 font-mono text-sm bg-gray-900 text-gray-50 border-none resize-none focus-visible:ring-0 focus-visible:ring-offset-0 rounded-none leading-5"
         spellCheck="false"
         aria-label="Code Editor"
